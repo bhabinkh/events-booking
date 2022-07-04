@@ -12,3 +12,62 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.form-control label,
+.form-control input,
+.form-control textarea {
+  display: block;
+  width: 100%;
+}
+
+.form-control label {
+  margin-bottom: 8px;
+}
+
+.form-control input {
+  margin-bottom: 16px;
+  height: 24px;
+}
+
+.form-control textarea {
+  margin-bottom: 16px;
+}
+
+.form-control input.active,
+.form-control input:active,
+.form-control input:hover,
+.form-control textarea.active,
+.form-control textarea:active,
+.form-control textarea:hover {
+  border: 1px solid rgb(6, 149, 144);
+}
+
+.form-actions button {
+  padding: 8px 24px;
+  font-weight: bold;
+}
+
+.btn {
+  padding: 8px 24px;
+  font-weight: bold;
+}
+
+.btn-contained {
+  background-color: rgb(6, 149, 144);
+  border: 1px solid black;
+  color: white;
+  margin: 0 16px;
+}
+
+.btn-contained:hover {
+  background-color: rgb(3, 73, 71);
+}
+
+.btn-outlined {
+  border: 1px solid rgb(6, 149, 144);
+}
+
+.btn-outlined:hover {
+  border: 1px solid rgb(3, 73, 71);
+  color: rgb(3, 73, 71);
+}
