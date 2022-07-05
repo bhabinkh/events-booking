@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react'
-import { Redirect } from 'react-router-dom'
+import React, { useState, useRef, useEffect } from 'react'
 import Backdrop from '../components/Backdrop/Backdrop'
 import Modal from '../components/Modal/Modal'
 import handleFetch from '../helpers/handleFetch'
+import EventItem from './EventItem'
 import './Events.css'
 
 
@@ -16,9 +16,14 @@ export default function Events() {
     const dateElRef = useRef()
 
     const [creating, setCreating] = useState(false)
+    const [events, setEvents] = useState([])
 
     const handleShareEvents = () => {
         setCreating(true)
+    }
+
+    const handleClick = () => {
+        console.log(events.events[0].title)
     }
 
     const handleCancel = () => {
@@ -62,9 +67,33 @@ export default function Events() {
     const handleBackdropClick = () => {
         setCreating(false)
     }
-    const handleLogin = () => {
-        <Redirect to='/auth'></Redirect>
+    const fetchEvents = async () => {
+        let requestBody = {
+            query: `
+            query {
+                events {
+                  _id
+                    title
+                    description
+                    date
+                    price
+                    creator {
+                      _id
+                      email
+                    }
+                  }
+              }
+
+            `
+        };
+        const data = await handleFetch(requestBody)
+        setEvents(data.data.events)
+        console.log(data.data.events)
     }
+    useEffect(() => {
+        fetchEvents()
+    }, [handleConfirm])
+
     return (
         <React.Fragment>
             {token && creating && <Backdrop onBackdropClick={handleBackdropClick}></Backdrop>}
@@ -89,7 +118,13 @@ export default function Events() {
 
                 </form>
             </Modal>}
-            {!creating && <div className='events-control'>
+            {events.map(event => {
+                return (
+                    <EventItem key={event._id} {...event} />
+                );
+            })}
+
+            {token && !creating && <div className='events-control'>
                 <p>Share your events</p>
                 {token && <button className='btn btn-contained' onClick={handleShareEvents}>Create Events</button>}
             </div>}
