@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import handleFetch from '../helpers/handleFetch'
+import { useLazyQuery, useMutation, gql } from '@apollo/client';
 import './Auth.css'
 
 export default function Auth() {
@@ -7,54 +7,55 @@ export default function Auth() {
     const emailEl = useRef()
     const passwordEl = useRef()
 
-    const emailPassword = () => {
-        const email = emailEl.current.value
-        const password = passwordEl.current.value
-        if (email.trim().length === 0 || password.trim().length === 0) {
-            return
+    const GET_USER = gql`
+        query GetUser($email: String!, $password:String!) {
+        login(email: $email, password: $password) {
+            userId
+            token
+            tokenExpiration
+            }
         }
-        return { email, password }
+        `;
+
+    const CREATE_USER = gql`
+        mutation CreateUser($email: String!, $password:String!) {
+        createUser(userInput:{email: $email, password: $password}) {
+            _id
+            email
+            }
+        }
+    `;
+    const [handleLogin, { loading, error, data }] = useLazyQuery(GET_USER)
+    const [handleSignup, { loading: signupLoading, error: signupError, data: signupData }] = useMutation(CREATE_USER)
+
+    if (loading || signupLoading) {
+        return <p>Loading...</p>
+    }
+    if (error || signupError) {
+        return <p>Error: {error || signupError}</p>
     }
 
-    const handleLogin = async (event) => {
-        event.preventDefault()
-        const { email, password } = emailPassword()
-        let requestBody = {
-            query: `
-              query {
-                login(email: "${email}", password: "${password}") {
-                  userId
-                  token
-                  tokenExpiration
-                }
-              }
-            `
-        };
-        const user = await handleFetch(requestBody)
-        console.log(user)
-        // localStorage.clear()
-        localStorage.setItem('userId', user.data.login.userId)
-        localStorage.setItem('token', user.data.login.token)
-        // context.login(user.data.login.userId, user.data.login.token, user.data.login.tokenExpiration)
+    if (data) {
+        let today = new Date()
+        let expiryDate = today.getTime() + 30 * 24 * 60 * 60 * 1000
+        console.log(data)
+
+        localStorage.clear()
+        localStorage.setItem('userId', data.login.userId)
+        localStorage.setItem('token', data.login.token)
+        localStorage.setItem('expiryDate', expiryDate)
     }
-    const handleSignup = async (event) => {
-        event.preventDefault()
-        const { email, password } = emailPassword()
-        let requestBody = {
-            query: `
-              mutation {
-                createUser(userInput: {email: "${email}", password: "${password}"}) {
-                  _id
-                  email
-                }
-              }
-            `
-        };
-        const user = await handleFetch(requestBody)
-        console.log(user)
+    if (signupData) {
+        localStorage.clear()
+        localStorage.setItem('userId', signupData.createUser._id)
+        localStorage.setItem('email', signupData.createUser.email)
+
     }
     return (
-        <form className='auth-form' onSubmit={handleLogin}>
+        <form className='auth-form' onSubmit={() =>
+            handleLogin({ variables: { email: emailEl.current.value.trim(), password: passwordEl.current.value.trim() } })
+        }
+        >
             <div className='form-control'>
                 <label htmlFor='email'>E-mail</label>
                 <input type="email" id="email" ref={emailEl} />
@@ -65,7 +66,9 @@ export default function Auth() {
             </div>
             <div className='form-actions'>
                 <button className='btn btn-contained' type="submit">Login</button>
-                <button className='btn btn-outlined' type='button' onClick={handleSignup}>Signup</button>
+                <button className='btn btn-outlined' type='button' onClick={() =>
+                    handleSignup({ variables: { email: emailEl.current.value.trim(), password: passwordEl.current.value.trim() } })
+                }>Signup</button>
             </div>
         </form>
     )

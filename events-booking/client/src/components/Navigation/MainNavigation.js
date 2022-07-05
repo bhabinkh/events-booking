@@ -1,10 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import './MainNavigation.css'
 
 export default function MainNavigation() {
     const token = localStorage.getItem('token')
     const logout = () => localStorage.clear()
+    const expiryDate = +localStorage.getItem('expiryDate')
+    const today = new Date()
+    const todayDate = today.getTime()
+
+    useEffect(() => {
+        if (expiryDate < todayDate) {
+            logout()
+        }
+    }, [expiryDate, todayDate])
 
     return (
         <header className='main-navigation'>

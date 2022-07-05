@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useQuery, gql, useMutation } from '@apollo/client'
 import Backdrop from '../components/Backdrop/Backdrop'
 import Modal from '../components/Modal/Modal'
-import handleFetch from '../helpers/handleFetch'
 import EventItem from './EventItem'
 import './Events.css'
 
@@ -16,88 +16,70 @@ export default function Events() {
     const dateElRef = useRef()
 
     const [creating, setCreating] = useState(false)
-    const [events, setEvents] = useState([])
+
+    const GET_EVENTS = gql`
+        query GetEvents {
+            events {
+                _id
+                title
+                description
+                date
+                price
+                creator {
+                    _id
+                    email
+                }
+                }
+            }
+        `;
+
+    const CREATE_EVENT = gql`
+        mutation CreateEvent($title: String!, $description:String!, $price: Float!, $date:String!) {
+            createEvent(eventInput:{title: $title, description:$description, price: $price, date:$date}) {
+                _id
+                title
+                description
+                date
+                price
+                creator {
+                _id
+                email
+                }
+            }
+        }
+    `;
+
+    const { loading, error, data } = useQuery(GET_EVENTS)
+    const [handleAddEvent, { loading: addEventLoading, error: addEventError, data: addEventData }] = useMutation(CREATE_EVENT)
+
+    if (loading || addEventLoading) {
+        return <p>Loading...</p>
+    }
+    if (error || addEventError) {
+        return <p>Error: {error}</p>
+    }
+    if (data || addEventData) {
+        console.log(data)
+    }
 
     const handleShareEvents = () => {
         setCreating(true)
-    }
-
-    const handleClick = () => {
-        console.log(events.events[0].title)
     }
 
     const handleCancel = () => {
         setCreating(false)
 
     }
-
-    const handleConfirm = async () => {
-        setCreating(false)
-
-        const title = titleElRef.current.value.trim()
-        const description = descElRef.current.value.trim()
-        const price = +priceElRef.current.value
-        const date = dateElRef.current.value
-
-        if (title.length === 0 || description.length === 0 || price <= 0) {
-            return
-        }
-
-        let requestBody = {
-            query: `
-            mutation {
-                createEvent(eventInput:{title: "${title}", description: "${description}", price:${price}, date:"${date}"}) {
-                  _id
-                    title
-                    description
-                    date
-                    price
-                    creator {
-                      _id
-                      email
-                    }
-                  }
-              }
-
-            `
-        };
-        const event = await handleFetch(requestBody, token)
-        console.log(event)
-    }
     const handleBackdropClick = () => {
         setCreating(false)
     }
-    const fetchEvents = async () => {
-        let requestBody = {
-            query: `
-            query {
-                events {
-                  _id
-                    title
-                    description
-                    date
-                    price
-                    creator {
-                      _id
-                      email
-                    }
-                  }
-              }
-
-            `
-        };
-        const data = await handleFetch(requestBody)
-        setEvents(data.data.events)
-        console.log(data.data.events)
-    }
-    useEffect(() => {
-        fetchEvents()
-    }, [handleConfirm])
-
     return (
         <React.Fragment>
             {token && creating && <Backdrop onBackdropClick={handleBackdropClick}></Backdrop>}
-            {token && creating && <Modal title="Add Event" canCancel canConfirm onCancel={handleCancel} onConfirm={handleConfirm} >
+            {token && creating && <Modal title="Add Event" canCancel canConfirm onCancel={handleCancel} onConfirm={() => {
+                setCreating(false);
+                handleAddEvent({ variables: { title: titleElRef.current.value.trim(), description: descElRef.current.value.trim(), price: +priceElRef.current.value, date: dateElRef.current.value } })
+            }} >
                 <form className='events-form'>
                     <div className='form-control'>
                         <label htmlFor='title'>Title</label>
@@ -118,7 +100,7 @@ export default function Events() {
 
                 </form>
             </Modal>}
-            {events.map(event => {
+            {data.events.map(event => {
                 return (
                     <EventItem key={event._id} {...event} />
                 );
