@@ -1,10 +1,11 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { NavLink } from 'react-router-dom'
-import AuthContext from '../../context/auth-context'
 import './MainNavigation.css'
 
 export default function MainNavigation() {
-    const context = useContext(AuthContext)
+    const token = localStorage.getItem('token')
+    const logout = () => localStorage.clear()
+
     return (
         <header className='main-navigation'>
             <div className='main-navigation__logo'>
@@ -12,9 +13,10 @@ export default function MainNavigation() {
             </div>
             <nav className='main-navigation__items'>
                 <ul>
-                    {!context.token && <li>< NavLink to="/auth">Authenticate</NavLink></li>}
+                    {!token && <li>< NavLink to="/auth">Authenticate</NavLink></li>}
                     <li>< NavLink to="/events">Events</NavLink></li>
-                    {context.token && <li>< NavLink to="/bookings">Bookings</NavLink></li>}
+                    {token && <li>< NavLink to="/bookings">Bookings</NavLink></li>}
+                    {token && <li><NavLink to="/" exact><div onClick={logout}>Logout</div></NavLink></li>}
                 </ul>
             </nav>
         </header>

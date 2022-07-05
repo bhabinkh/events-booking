@@ -41,7 +41,3 @@
 .main-navigation__items a.active {
     color: lemonchiffon;
 }
-
-.main-navigation__items a.active {
-    text-decoration: underline;
-}
