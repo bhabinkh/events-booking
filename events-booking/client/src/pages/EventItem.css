@@ -22,3 +22,9 @@ h4 {
     margin: 0;
     padding: 0;
 }
+
+.modal__actions {
+    display: flex;
+    padding: 16px 0;
+    justify-content: flex-end;
+}

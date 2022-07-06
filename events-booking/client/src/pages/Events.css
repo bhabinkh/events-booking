@@ -7,28 +7,3 @@
     border: 1px solid green;
     text-align: center;
 }
-
-.events__item {
-    margin: 0 auto;
-    padding: 0 16px;
-    margin-bottom: 16px;
-    width: 600px;
-    max-width: 80%;
-    text-align: left;
-    border: 1px solid green;
-}
-
-.event__header,
-.event__header h3,
-h4 {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0 0 0;
-    margin: 0;
-}
-
-.event__caption {
-    font-size: 12px;
-    margin: 0;
-    padding: 0;
-}

@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { useQuery, gql, useMutation } from '@apollo/client'
 import Backdrop from '../components/Backdrop/Backdrop'
 import Modal from '../components/Modal/Modal'
 import EventItem from './EventItem'
 import './Events.css'
-
 
 export default function Events() {
 
@@ -49,17 +48,38 @@ export default function Events() {
         }
     `;
 
+    const BOOK_EVENT = gql`
+    mutation BookEvent($eventId: ID!) {
+        bookEvent(eventId: $eventId) {
+            _id
+            event{
+                _id
+                title
+                description
+                date
+                price
+            }
+            user {
+                _id
+                email
+            }
+            
+        }
+    }
+`;
+
     const { loading, error, data } = useQuery(GET_EVENTS)
     const [handleAddEvent, { loading: addEventLoading, error: addEventError, data: addEventData }] = useMutation(CREATE_EVENT)
+    const [handleBookEvent, { loading: bookEventLoading, error: bookEventError, data: bookEventData }] = useMutation(BOOK_EVENT)
 
-    if (loading || addEventLoading) {
+    if (loading || addEventLoading || bookEventLoading) {
         return <p>Loading...</p>
     }
-    if (error || addEventError) {
-        return <p>Error: {error}</p>
+    if (error || addEventError || bookEventError) {
+        return <p>Error: {error || addEventError || bookEventError}</p>
     }
-    if (data || addEventData) {
-        console.log(data)
+    if (data || addEventData || bookEventData) {
+        console.log(data || addEventData || bookEventData)
     }
 
     const handleShareEvents = () => {
@@ -102,7 +122,7 @@ export default function Events() {
             </Modal>}
             {data.events.map(event => {
                 return (
-                    <EventItem key={event._id} {...event} />
+                    <EventItem key={event._id} {...event} bookEvent={() => handleBookEvent({ variables: { eventId: event._id } })} />
                 );
             })}
 
